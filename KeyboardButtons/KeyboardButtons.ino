@@ -6,7 +6,12 @@ Author: J. C. Holder (jc.holder@thoughtworks.com)
 
 const bool DEBUG = false;
 
+const int SPACEBAR_ID = 1;
+const int ENTER_ID = 2;
+const int RESET_ID = 3;
+
 struct KeyboardButton {
+  int id;
   int pin;
   int clicks;
   bool clicked;
@@ -19,6 +24,7 @@ struct KeyboardButton {
 };
 
 KeyboardButton spacebar = {
+  SPACEBAR_ID, // id
   4, // pin
   0, // clicks
   false, //clicked
@@ -31,6 +37,7 @@ KeyboardButton spacebar = {
 };
 
 KeyboardButton enterButton = {
+  ENTER_ID, // id
   8, // pin
   0, // clicks
   false, //clicked
@@ -43,6 +50,7 @@ KeyboardButton enterButton = {
 };
 
 KeyboardButton resetButton = {
+  RESET_ID, // id
   14, // pin
   0, // clicks
   false, //clicked
@@ -65,7 +73,7 @@ KeyboardButton checkKeyboardButton(KeyboardButton button) {
   if (DEBUG && button.clicks > 50) {
     return button;
   }
-  
+
   int buttonState = digitalRead(button.pin);
 
   // TODO: How long can we run before we risk data overflow on
@@ -88,7 +96,7 @@ KeyboardButton checkKeyboardButton(KeyboardButton button) {
       // Only count clicks while debugging to avoid
       // integer overflow during production
       button.clicks++;
-  
+
       Serial.print("You pressed the " );
       Serial.print(button.debugLabel);
       Serial.print(" button ");
@@ -98,11 +106,21 @@ KeyboardButton checkKeyboardButton(KeyboardButton button) {
       Serial.print((char)button.keycode);
       Serial.println();
     }
-    
+
     button.clicked = true;
 
-    Keyboard.press(button.keycode);
-    Keyboard.release(button.keycode);
+    if (button.id == RESET_ID) {
+      Keyboard.press(KEY_LEFT_CTRL);
+      Keyboard.press(KEY_LEFT_SHIFT);
+      Keyboard.press('r');
+
+      Keyboard.release('r');
+      Keyboard.release(KEY_LEFT_SHIFT);
+      Keyboard.release(KEY_LEFT_CTRL);
+    } else {
+      Keyboard.press(button.keycode);
+      Keyboard.release(button.keycode);
+    }
   }
 
   return button;
